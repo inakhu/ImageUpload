@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" />
-        <title>PhoneGap app</title>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" />
+    <title>PhoneGap app</title>
 
-        <!-- Script -->
-        <script type="text/javascript" src="cordova.js" ></script>
-        <script type='text/javascript' src='jquery-3.0.0.js' ></script>
-        <script type='text/javascript'>
+    <!-- Script -->
+    <script type="text/javascript" src="cordova.js" ></script>
+    <script type='text/javascript' src='jquery-3.0.0.js' ></script>
+    <script type='text/javascript'>
 
         $(document).ready(function(){
 
             // take picture from camera
-            $('#but_take').click(function(){      
+            $('#but_take').click(function(){
                 navigator.camera.getPicture(onSuccess, onFail, { quality: 20,
-                    destinationType: Camera.DestinationType.FILE_URL 
+                    destinationType: Camera.DestinationType.FILE_URL
                 });
             });
 
             // upload select 
             $("#but_select").click(function(){
                 navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
-                    sourceType: Camera.PictureSourceType.PHOTOLIBRARY, 
+                    sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
                     allowEdit: true,
                     destinationType: Camera.DestinationType.FILE_URI
                 });
-                
+
             });
 
             // Change image source and upload photo to server
@@ -35,12 +35,12 @@
                 // Set image source
                 var image = document.getElementById('img');
                 image.src = imageURI  + '?' + Math.random();
-                
+
                 var options = new FileUploadOptions();
                 options.fileKey = "file";
                 options.fileName = imageURI.substr(imageURI.lastIndexOf('/') + 1);
                 options.mimeType = "image/jpeg";
-                
+
                 var params = {};
                 params.value1 = "test";
                 params.value2 = "param";
@@ -54,28 +54,63 @@
                 }, function(error){
                     alert('error : ' + JSON.stringify(error));
                 }, options);
-                
+
             }
 
             function onFail(message) {
                 alert('Failed because: ' + message);
             }
-
         });
-        
-        </script>
-    </head>
-    <body>
-        
-		<div style="margin:0 auto; width:30%!important;text-align: center;">
-			<img src="img/cam2.jpg" id='img' style="width: 100px; height: 100px;">
-        </div><br/>
-        <div style="width:100%; text-align:center; padding:10px;">
 
-            <button id='but_take'>Take photo</button>
-            <button id='but_select'>Select photo from Gallery</button>
-           
-        </div>
-        
-    </body>
+        function onDeviceReady() {
+            pictureSource=navigator.camera.PictureSourceType;
+            destinationType=navigator.camera.DestinationType;
+        }
+        function uploadFile(mediaFile,method) {
+            var ft = new FileTransfer(),
+                path = mediaFile,
+                name = "video.3gp";
+            var options = new FileUploadOptions();
+            options.chunkedMode = false;
+            options.fileKey = "file";
+            options.fileName = name;
+            options.mimeType = "video/mpeg";
+            ft.upload(path,
+                "http://demo.makitweb.com/phonegap_camera/upload.php",
+                function(r) {
+                    alert('Success ' + r.response);
+                },
+                function(error) {
+                    alert('Error ' + path + ': ' + error.code);
+                },
+                options);
+        }
+        function onPhotoURISuccess(imageURI) {
+            uploadFile(imageURI,"library");
+        }
+        function getVideo(source, type) {
+            navigator.camera.getPicture(onPhotoURISuccess, onFail, { quality:
+                50, destinationType: destinationType.FILE_URI, sourceType: source,
+                mediaType: type});
+        }
+        function onFail(message) {
+            alert('Error');
+        }
+
+    </script>
+</head>
+<body>
+
+<div style="margin:0 auto; width:30%!important;text-align: center;">
+    <img src="img/cam2.jpg" id='img' style="width: 100px; height: 100px;">
+</div><br/>
+<div style="width:100%; text-align:center; padding:10px;">
+
+    <button id='but_take'>Take photo</button>
+    <button id='but_select'>Select photo from Gallery</button>
+    <button class="btn" onclick="getVideo(pictureSource.PHOTOLIBRARY,Camera.MediaType.VIDEO);">GetVideo</button>
+
+</div>
+
+</body>
 </html>
